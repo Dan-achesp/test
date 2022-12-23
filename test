@@ -1,1 +1,1376 @@
-test
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Condición_-_si_se_recibe_el_token_(cód._respuesta_200)_": {
+                "actions": {
+                    "Análisis_del_archivo_JSON": {
+                        "inputs": {
+                            "content": "@body('HTTP_get_Ivcert_token')",
+                            "schema": {
+                                "properties": {
+                                    ".expires": {
+                                        "type": "string"
+                                    },
+                                    ".issued": {
+                                        "type": "string"
+                                    },
+                                    "OrgaCIF": {
+                                        "type": "string"
+                                    },
+                                    "OrgaColor": {
+                                        "type": "string"
+                                    },
+                                    "OrgaLogo": {
+                                        "type": "string"
+                                    },
+                                    "OrgaType": {
+                                        "type": "string"
+                                    },
+                                    "access_token": {
+                                        "type": "string"
+                                    },
+                                    "companyId": {
+                                        "type": "string"
+                                    },
+                                    "companyName": {
+                                        "type": "string"
+                                    },
+                                    "expires_in": {
+                                        "type": "integer"
+                                    },
+                                    "fieldToUseSIG": {
+                                        "type": "string"
+                                    },
+                                    "guidUser": {
+                                        "type": "string"
+                                    },
+                                    "idPerfilUser": {
+                                        "type": "string"
+                                    },
+                                    "idUser": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "qualifiedUser": {
+                                        "type": "string"
+                                    },
+                                    "refresh_token": {
+                                        "type": "string"
+                                    },
+                                    "rol": {
+                                        "type": "string"
+                                    },
+                                    "tokenIvSign": {
+                                        "type": "string"
+                                    },
+                                    "token_type": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        },
+                        "runAfter": {},
+                        "type": "ParseJson"
+                    },
+                    "Inicializar_variable_token": {
+                        "inputs": {
+                            "name": "token",
+                            "value": "@body('Análisis_del_archivo_JSON')?['access_token']"
+                        },
+                        "runAfter": {
+                            "Análisis_del_archivo_JSON": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "SetVariable"
+                    },
+                    "Iteramos_las_misiones_activas": {
+                        "actions": {
+                            "Inicializar_variable_bibiliotecaTimeSheet": {
+                                "inputs": {
+                                    "name": "biblioteca TimeSheet",
+                                    "value": "@items('Iteramos_las_misiones_activas')?['field_4']"
+                                },
+                                "runAfter": {
+                                    "Inicializar_variable_directorioTimeSheet": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                "type": "SetVariable"
+                            },
+                            "Inicializar_variable_directorioTimeSheet": {
+                                "inputs": {
+                                    "name": "directorioTimeSheet",
+                                    "value": "@items('Iteramos_las_misiones_activas')?['field_2']"
+                                },
+                                "runAfter": {},
+                                "type": "SetVariable"
+                            },
+                            "Iteramos_el_contenido_de_la_carpeta_": {
+                                "actions": {
+                                    "Obtenemos_los_archivos_(timesheets_sin_procesar)_e_ignoramos_las_carpetas": {
+                                        "actions": {
+                                            "Análisis_del_archivo_JSON_2": {
+                                                "inputs": {
+                                                    "content": "@body('HTTP_obtener_información_de_empleado')",
+                                                    "schema": {
+                                                        "properties": {
+                                                            "@@odata.context": {
+                                                                "type": "string"
+                                                            },
+                                                            "value": {
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "department": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "employeeId": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "givenName": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "id": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "jobTitle": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "mail": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "surname": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "id",
+                                                                        "givenName",
+                                                                        "surname",
+                                                                        "mail",
+                                                                        "employeeId",
+                                                                        "department",
+                                                                        "jobTitle"
+                                                                    ],
+                                                                    "type": "object"
+                                                                },
+                                                                "type": "array"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "runAfter": {
+                                                    "HTTP_obtener_información_de_empleado": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "ParseJson"
+                                            },
+                                            "Condición_-_si_el_empleado_existe": {
+                                                "actions": {
+                                                    "Para_cada_uno": {
+                                                        "actions": {
+                                                            "Catch": {
+                                                                "actions": {
+                                                                    "Mover_archivo_a_No_LineManager": {
+                                                                        "inputs": {
+                                                                            "body": {
+                                                                                "destinationDataset": "@items('Iteramos_las_misiones_activas')?['field_2']",
+                                                                                "destinationFolderPath": "@{items('Iteramos_las_misiones_activas')?['field_4']}/No_LineManager",
+                                                                                "nameConflictBehavior": 2,
+                                                                                "sourceFileId": "@items('Iteramos_el_contenido_de_la_carpeta_')?['Id']"
+                                                                            },
+                                                                            "host": {
+                                                                                "connection": {
+                                                                                    "name": "@parameters('$connections')['sharepointonline_1']['connectionId']"
+                                                                                }
+                                                                            },
+                                                                            "method": "post",
+                                                                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(items('Iteramos_las_misiones_activas')?['field_2']))}/moveFileAsync"
+                                                                        },
+                                                                        "runAfter": {},
+                                                                        "type": "ApiConnection"
+                                                                    }
+                                                                },
+                                                                "runAfter": {
+                                                                    "Try_Create_Circuit": [
+                                                                        "Failed"
+                                                                    ]
+                                                                },
+                                                                "type": "Scope"
+                                                            },
+                                                            "Obtener_el_administrador_(V2)": {
+                                                                "inputs": {
+                                                                    "host": {
+                                                                        "connection": {
+                                                                            "name": "@parameters('$connections')['office365users']['connectionId']"
+                                                                        }
+                                                                    },
+                                                                    "method": "get",
+                                                                    "path": "/codeless/v1.0/users/@{encodeURIComponent(items('Para_cada_uno')?['id'])}/manager"
+                                                                },
+                                                                "runAfter": {},
+                                                                "type": "ApiConnection"
+                                                            },
+                                                            "Try_Create_Circuit": {
+                                                                "actions": {
+                                                                    "Condición_-_si_el_circuito_se_ha_creado_correctamente": {
+                                                                        "actions": {
+                                                                            "Análisis_del_archivo_JSON_circuit": {
+                                                                                "inputs": {
+                                                                                    "content": "@body('HTTP_createCircuit_2')",
+                                                                                    "schema": {
+                                                                                        "properties": {
+                                                                                            "Code": {
+                                                                                                "type": "string"
+                                                                                            },
+                                                                                            "Description": {},
+                                                                                            "data": {
+                                                                                                "properties": {
+                                                                                                    "acepRechazoActivado": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "alertFinishOperation": {
+                                                                                                        "type": "boolean"
+                                                                                                    },
+                                                                                                    "alertfinish": {
+                                                                                                        "type": "boolean"
+                                                                                                    },
+                                                                                                    "batch": {},
+                                                                                                    "bodyEmailExpiration": {},
+                                                                                                    "circuitCredits": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "circuitReceivers": {
+                                                                                                        "items": {
+                                                                                                            "properties": {
+                                                                                                                "CustomFields": {
+                                                                                                                    "type": "array"
+                                                                                                                },
+                                                                                                                "authOperation": {},
+                                                                                                                "bodyEmail": {},
+                                                                                                                "bodyEmailExpiration": {},
+                                                                                                                "cifCompany": {},
+                                                                                                                "customMessage": {},
+                                                                                                                "dni": {
+                                                                                                                    "type": "string"
+                                                                                                                },
+                                                                                                                "document": {},
+                                                                                                                "email": {
+                                                                                                                    "type": "string"
+                                                                                                                },
+                                                                                                                "externalId": {
+                                                                                                                    "type": "string"
+                                                                                                                },
+                                                                                                                "fExpired": {
+                                                                                                                    "type": "integer"
+                                                                                                                },
+                                                                                                                "group": {
+                                                                                                                    "type": "integer"
+                                                                                                                },
+                                                                                                                "idCargo": {
+                                                                                                                    "type": "integer"
+                                                                                                                },
+                                                                                                                "ivSignCertId": {},
+                                                                                                                "ivSignCertPass": {},
+                                                                                                                "ivSignOrgaId": {},
+                                                                                                                "ivSignPass": {},
+                                                                                                                "ivSignUser": {},
+                                                                                                                "listTemplatesReceiver": {},
+                                                                                                                "metadata": {},
+                                                                                                                "name": {},
+                                                                                                                "nameCompany": {},
+                                                                                                                "notes": {},
+                                                                                                                "operationType": {
+                                                                                                                    "type": "string"
+                                                                                                                },
+                                                                                                                "sendNotification": {
+                                                                                                                    "type": "integer"
+                                                                                                                },
+                                                                                                                "signaturePreference": {},
+                                                                                                                "sigorgacert": {},
+                                                                                                                "subjectEmail": {},
+                                                                                                                "subjectEmailExpiration": {},
+                                                                                                                "tlf": {},
+                                                                                                                "typeNotification": {
+                                                                                                                    "type": "integer"
+                                                                                                                },
+                                                                                                                "typeNotificationOTP": {
+                                                                                                                    "type": "integer"
+                                                                                                                },
+                                                                                                                "urlCallbackKO": {},
+                                                                                                                "urlCallbackOK": {},
+                                                                                                                "urlCallbackOnline": {},
+                                                                                                                "widgetOperation": {
+                                                                                                                    "items": {
+                                                                                                                        "properties": {
+                                                                                                                            "design": {
+                                                                                                                                "type": "string"
+                                                                                                                            },
+                                                                                                                            "doc": {
+                                                                                                                                "type": "string"
+                                                                                                                            },
+                                                                                                                            "idWidget": {
+                                                                                                                                "type": "integer"
+                                                                                                                            },
+                                                                                                                            "key": {},
+                                                                                                                            "page": {
+                                                                                                                                "type": "string"
+                                                                                                                            },
+                                                                                                                            "positionX": {
+                                                                                                                                "type": "number"
+                                                                                                                            },
+                                                                                                                            "positionY": {
+                                                                                                                                "type": "number"
+                                                                                                                            },
+                                                                                                                            "required": {
+                                                                                                                                "type": "boolean"
+                                                                                                                            },
+                                                                                                                            "searchpattern": {},
+                                                                                                                            "type": {
+                                                                                                                                "type": "string"
+                                                                                                                            }
+                                                                                                                        },
+                                                                                                                        "required": [
+                                                                                                                            "positionX",
+                                                                                                                            "positionY",
+                                                                                                                            "page",
+                                                                                                                            "type",
+                                                                                                                            "design",
+                                                                                                                            "required",
+                                                                                                                            "idWidget",
+                                                                                                                            "doc",
+                                                                                                                            "key",
+                                                                                                                            "searchpattern"
+                                                                                                                        ],
+                                                                                                                        "type": "object"
+                                                                                                                    },
+                                                                                                                    "type": "array"
+                                                                                                                }
+                                                                                                            },
+                                                                                                            "required": [
+                                                                                                                "email",
+                                                                                                                "name",
+                                                                                                                "tlf",
+                                                                                                                "dni",
+                                                                                                                "cifCompany",
+                                                                                                                "nameCompany",
+                                                                                                                "notes",
+                                                                                                                "operationType",
+                                                                                                                "subjectEmail",
+                                                                                                                "bodyEmail",
+                                                                                                                "externalId",
+                                                                                                                "fExpired",
+                                                                                                                "metadata",
+                                                                                                                "idCargo",
+                                                                                                                "sendNotification",
+                                                                                                                "urlCallbackOK",
+                                                                                                                "urlCallbackKO",
+                                                                                                                "urlCallbackOnline",
+                                                                                                                "ivSignUser",
+                                                                                                                "ivSignPass",
+                                                                                                                "ivSignCertId",
+                                                                                                                "ivSignCertPass",
+                                                                                                                "ivSignOrgaId",
+                                                                                                                "widgetOperation",
+                                                                                                                "typeNotification",
+                                                                                                                "document",
+                                                                                                                "signaturePreference",
+                                                                                                                "authOperation",
+                                                                                                                "typeNotificationOTP",
+                                                                                                                "customMessage",
+                                                                                                                "group",
+                                                                                                                "CustomFields",
+                                                                                                                "sigorgacert",
+                                                                                                                "subjectEmailExpiration",
+                                                                                                                "bodyEmailExpiration",
+                                                                                                                "listTemplatesReceiver"
+                                                                                                            ],
+                                                                                                            "type": "object"
+                                                                                                        },
+                                                                                                        "type": "array"
+                                                                                                    },
+                                                                                                    "circuitTitle": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "circuitType": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "configCustodyDocs": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "configCustodyEvidences": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "creditsCreationCircuit": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "customdata1": {},
+                                                                                                    "customdata2": {},
+                                                                                                    "customdata3": {},
+                                                                                                    "customdata4": {},
+                                                                                                    "daysToExpireCircuit": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "docTypeId": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "document": {
+                                                                                                        "items": {
+                                                                                                            "properties": {
+                                                                                                                "content": {
+                                                                                                                    "type": "string"
+                                                                                                                },
+                                                                                                                "creditsDoc": {
+                                                                                                                    "type": "integer"
+                                                                                                                },
+                                                                                                                "csv": {
+                                                                                                                    "type": "string"
+                                                                                                                },
+                                                                                                                "custodyEndDate": {},
+                                                                                                                "custodyIniDate": {},
+                                                                                                                "docOperation": {
+                                                                                                                    "type": "integer"
+                                                                                                                },
+                                                                                                                "externalId": {},
+                                                                                                                "facturae": {
+                                                                                                                    "type": "integer"
+                                                                                                                },
+                                                                                                                "fileNameWithExtension": {
+                                                                                                                    "type": "string"
+                                                                                                                },
+                                                                                                                "hash": {},
+                                                                                                                "idDocument": {
+                                                                                                                    "type": "string"
+                                                                                                                },
+                                                                                                                "metadataDocument": {},
+                                                                                                                "title": {
+                                                                                                                    "type": "string"
+                                                                                                                },
+                                                                                                                "type": {
+                                                                                                                    "type": "integer"
+                                                                                                                },
+                                                                                                                "typeName": {}
+                                                                                                            },
+                                                                                                            "required": [
+                                                                                                                "fileNameWithExtension",
+                                                                                                                "type",
+                                                                                                                "typeName",
+                                                                                                                "content",
+                                                                                                                "title",
+                                                                                                                "externalId",
+                                                                                                                "idDocument",
+                                                                                                                "csv",
+                                                                                                                "custodyIniDate",
+                                                                                                                "custodyEndDate",
+                                                                                                                "facturae",
+                                                                                                                "hash",
+                                                                                                                "creditsDoc",
+                                                                                                                "docOperation",
+                                                                                                                "metadataDocument"
+                                                                                                            ],
+                                                                                                            "type": "object"
+                                                                                                        },
+                                                                                                        "type": "array"
+                                                                                                    },
+                                                                                                    "externalAppCircuitId": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "forwardOTP": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "generateCSV": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "hideCreator": {
+                                                                                                        "type": "boolean"
+                                                                                                    },
+                                                                                                    "idCircuit": {
+                                                                                                        "type": "string"
+                                                                                                    },
+                                                                                                    "listTemplatesCircuit": {},
+                                                                                                    "metadataCircuit": {},
+                                                                                                    "notReceiversCircuits": {
+                                                                                                        "type": "boolean"
+                                                                                                    },
+                                                                                                    "notes": {},
+                                                                                                    "publishOnFinish": {
+                                                                                                        "type": "boolean"
+                                                                                                    },
+                                                                                                    "rechazoActivado": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "requiredDoc": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "sellarDoc": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "sender": {},
+                                                                                                    "subjectEmailExpiration": {},
+                                                                                                    "typeNotificationCallback": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "typeNotificationOTP": {
+                                                                                                        "type": "integer"
+                                                                                                    },
+                                                                                                    "visualizeClientDoc": {
+                                                                                                        "type": "integer"
+                                                                                                    }
+                                                                                                },
+                                                                                                "type": "object"
+                                                                                            },
+                                                                                            "traceId": {
+                                                                                                "type": "string"
+                                                                                            }
+                                                                                        },
+                                                                                        "type": "object"
+                                                                                    }
+                                                                                },
+                                                                                "runAfter": {},
+                                                                                "type": "ParseJson"
+                                                                            },
+                                                                            "Añadir_circuito_a_lista_TimeSheet_Circuits": {
+                                                                                "inputs": {
+                                                                                    "body": {
+                                                                                        "LineManager": "@body('Obtener_el_administrador_(V2)')?['displayName']",
+                                                                                        "Month": "@variables('vMonthTS')",
+                                                                                        "Name": "@{items('Para_cada_uno')?['givenName']} @{items('Para_cada_uno')?['surname']}",
+                                                                                        "Title": "@variables('idCircuito')",
+                                                                                        "Year": "@variables('vYearTS')",
+                                                                                        "fechaActualizaci_x00f3_n": "@{utcNow()}",
+                                                                                        "field_1": "Signing",
+                                                                                        "field_3": "@body('Mover_archivo_a_Signing')?['Name']",
+                                                                                        "field_4": "@body('Mover_archivo_a_Signing')?['Id']",
+                                                                                        "field_5": "@items('Iteramos_las_misiones_activas')?['field_2']",
+                                                                                        "field_6": "@items('Iteramos_las_misiones_activas')?['field_4']",
+                                                                                        "mision": "@items('Iteramos_las_misiones_activas')?['Title']"
+                                                                                    },
+                                                                                    "host": {
+                                                                                        "connection": {
+                                                                                            "name": "@parameters('$connections')['sharepointonline_1']['connectionId']"
+                                                                                        }
+                                                                                    },
+                                                                                    "method": "post",
+                                                                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent('https://nohungerforum.sharepoint.com/sites/DTR'))}/tables/@{encodeURIComponent(encodeURIComponent('bc40d47b-4aba-45e4-936d-5fb1947b15e4'))}/items"
+                                                                                },
+                                                                                "runAfter": {
+                                                                                    "Mover_archivo_a_Signing": [
+                                                                                        "Succeeded"
+                                                                                    ]
+                                                                                },
+                                                                                "type": "ApiConnection"
+                                                                            },
+                                                                            "Inicializar_variable_idCircuito": {
+                                                                                "inputs": {
+                                                                                    "name": "idCircuito",
+                                                                                    "value": "@body('Análisis_del_archivo_JSON_circuit')?['data']?['idCircuit']"
+                                                                                },
+                                                                                "runAfter": {
+                                                                                    "Análisis_del_archivo_JSON_circuit": [
+                                                                                        "Succeeded"
+                                                                                    ]
+                                                                                },
+                                                                                "type": "SetVariable"
+                                                                            },
+                                                                            "Mover_archivo_a_Signing": {
+                                                                                "inputs": {
+                                                                                    "body": {
+                                                                                        "destinationDataset": "@items('Iteramos_las_misiones_activas')?['field_2']",
+                                                                                        "destinationFolderPath": "@{items('Iteramos_las_misiones_activas')?['field_4']}/Signing",
+                                                                                        "nameConflictBehavior": 2,
+                                                                                        "sourceFileId": "@items('Iteramos_el_contenido_de_la_carpeta_')?['Id']"
+                                                                                    },
+                                                                                    "host": {
+                                                                                        "connection": {
+                                                                                            "name": "@parameters('$connections')['sharepointonline_1']['connectionId']"
+                                                                                        }
+                                                                                    },
+                                                                                    "method": "post",
+                                                                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(items('Iteramos_las_misiones_activas')?['field_2']))}/moveFileAsync"
+                                                                                },
+                                                                                "runAfter": {
+                                                                                    "Inicializar_variable_idCircuito": [
+                                                                                        "Succeeded"
+                                                                                    ]
+                                                                                },
+                                                                                "type": "ApiConnection"
+                                                                            }
+                                                                        },
+                                                                        "expression": {
+                                                                            "and": [
+                                                                                {
+                                                                                    "equals": [
+                                                                                        "@outputs('HTTP_createCircuit_2')['statusCode']",
+                                                                                        200
+                                                                                    ]
+                                                                                }
+                                                                            ]
+                                                                        },
+                                                                        "runAfter": {
+                                                                            "HTTP_createCircuit_2": [
+                                                                                "Succeeded"
+                                                                            ]
+                                                                        },
+                                                                        "type": "If"
+                                                                    },
+                                                                    "Establecer_LineManager": {
+                                                                        "inputs": {
+                                                                            "name": "LineManager",
+                                                                            "value": "@body('Obtener_el_administrador_(V2)')?['mail']"
+                                                                        },
+                                                                        "runAfter": {},
+                                                                        "type": "SetVariable"
+                                                                    },
+                                                                    "HTTP_createCircuit_2": {
+                                                                        "inputs": {
+                                                                            "body": {
+                                                                                "alertfinish": true,
+                                                                                "circuitReceivers": [
+                                                                                    {
+                                                                                        "bodyEmail": null,
+                                                                                        "customFields": [],
+                                                                                        "customMessage": null,
+                                                                                        "dni": "",
+                                                                                        "email": "@{items('Para_cada_uno')?['mail']}",
+                                                                                        "externalid": "",
+                                                                                        "fExpired": 0,
+                                                                                        "name": null,
+                                                                                        "operationType": "ACEP",
+                                                                                        "sendNotification": 1,
+                                                                                        "tlf": null,
+                                                                                        "typeNotification": 1,
+                                                                                        "urlCallbackOnline": null,
+                                                                                        "widgetOperation": [
+                                                                                            {
+                                                                                                "design": "{\"font-family\":\"Arial\",\"font-size\":14,\"textcolor\":\"#000000\",\"width\":113.33333333333333,\"height\":138.46153846153845,\"onlySign\":false,\"signText\":true,\"onlyText\":false,\"newWidth\":153,\"newHeight\":180,\"positionType\":\"last\",\"dragPosition\":{\"x\":136,\"y\":-513},\"document\":1,\"textWidget\":\"The document was signed by {name} with mail {email} \"}",
+                                                                                                "doc": 1,
+                                                                                                "idWidget": 143,
+                                                                                                "page": "3",
+                                                                                                "positionX": 68.5,
+                                                                                                "positionY": 144.53846153846155,
+                                                                                                "required": 1,
+                                                                                                "type": "SIGNATURE_SIMPLE"
+                                                                                            }
+                                                                                        ]
+                                                                                    },
+                                                                                    {
+                                                                                        "bodyEmail": null,
+                                                                                        "customFields": [],
+                                                                                        "customMessage": null,
+                                                                                        "dni": "",
+                                                                                        "email": "@{variables('LineManager')}",
+                                                                                        "externalid": "",
+                                                                                        "fExpired": 0,
+                                                                                        "name": null,
+                                                                                        "operationType": "ACEP",
+                                                                                        "sendNotification": 1,
+                                                                                        "tlf": null,
+                                                                                        "typeNotification": 1,
+                                                                                        "urlCallbackOnline": null,
+                                                                                        "widgetOperation": [
+                                                                                            {
+                                                                                                "design": "{\"font-family\":\"Arial\",\"font-size\":14,\"textcolor\":\"#000000\",\"width\":113.33333333333333,\"height\":138.46153846153845,\"onlySign\":false,\"signText\":true,\"onlyText\":false,\"newWidth\":153,\"newHeight\":180,\"positionType\":\"last\",\"dragPosition\":{\"x\":136,\"y\":-113},\"document\":1,\"textWidget\":\"The document was signed by {name} with mail {email} \"}",
+                                                                                                "doc": 1,
+                                                                                                "idWidget": 143,
+                                                                                                "page": "3",
+                                                                                                "positionX": 618.5,
+                                                                                                "positionY": 144.53846153846155,
+                                                                                                "required": 1,
+                                                                                                "type": "SIGNATURE_SIMPLE"
+                                                                                            }
+                                                                                        ]
+                                                                                    }
+                                                                                ],
+                                                                                "circuitTitle": ": @{variables('vMonthTS')}  @{variables('vYearTS')}  @{items('Para_cada_uno')?['employeeId']}",
+                                                                                "circuitType": "TimeSheet01",
+                                                                                "customFields": [],
+                                                                                "customMessage": null,
+                                                                                "daysToExpireCircuit": 0,
+                                                                                "document": [
+                                                                                    {
+                                                                                        "content": "@{variables('fichero_B64')}",
+                                                                                        "fileNameWithExtension": "@{variables('vFileName')}",
+                                                                                        "title": "PruebaCircuito",
+                                                                                        "type": 1
+                                                                                    }
+                                                                                ],
+                                                                                "externalAppCircuitId": "",
+                                                                                "externalid": "",
+                                                                                "fExpired": 0,
+                                                                                "generateCSV": 0,
+                                                                                "marcas_graficas": "0",
+                                                                                "sendNotification": 1,
+                                                                                "typeNotification": 1,
+                                                                                "urlCallbackOnline": null
+                                                                            },
+                                                                            "headers": {
+                                                                                "Accept": "*/*",
+                                                                                "Accept-Encoding": "gzip, deflate, br",
+                                                                                "Authorization": "bearer @{variables('token')}",
+                                                                                "Cache-Control": "no-cache",
+                                                                                "Connection": "keep-alive",
+                                                                                "Host": "ach.ivcert.net"
+                                                                            },
+                                                                            "method": "POST",
+                                                                            "uri": "https://ach.ivcert.net/ivcert/api/Circuit"
+                                                                        },
+                                                                        "runAfter": {
+                                                                            "Establecer_LineManager": [
+                                                                                "Succeeded"
+                                                                            ]
+                                                                        },
+                                                                        "type": "Http"
+                                                                    }
+                                                                },
+                                                                "runAfter": {
+                                                                    "Ámbito": [
+                                                                        "Skipped"
+                                                                    ]
+                                                                },
+                                                                "type": "Scope"
+                                                            },
+                                                            "Ámbito": {
+                                                                "actions": {
+                                                                    "Mover_archivo_a_No_Line_Manager": {
+                                                                        "inputs": {
+                                                                            "body": {
+                                                                                "destinationDataset": "@items('Iteramos_las_misiones_activas')?['field_2']",
+                                                                                "destinationFolderPath": "@{items('Iteramos_las_misiones_activas')?['field_4']}/No_LineManager",
+                                                                                "nameConflictBehavior": 2,
+                                                                                "sourceFileId": "@items('Iteramos_el_contenido_de_la_carpeta_')?['Id']"
+                                                                            },
+                                                                            "host": {
+                                                                                "connection": {
+                                                                                    "name": "@parameters('$connections')['sharepointonline_1']['connectionId']"
+                                                                                }
+                                                                            },
+                                                                            "method": "post",
+                                                                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(items('Iteramos_las_misiones_activas')?['field_2']))}/moveFileAsync"
+                                                                        },
+                                                                        "runAfter": {},
+                                                                        "type": "ApiConnection"
+                                                                    }
+                                                                },
+                                                                "runAfter": {
+                                                                    "Obtener_el_administrador_(V2)": [
+                                                                        "Failed"
+                                                                    ]
+                                                                },
+                                                                "type": "Scope"
+                                                            }
+                                                        },
+                                                        "foreach": "@body('Análisis_del_archivo_JSON_2')?['value']",
+                                                        "runAfter": {},
+                                                        "type": "Foreach"
+                                                    }
+                                                },
+                                                "else": {
+                                                    "actions": {
+                                                        "Mover_archivo_a_Non_existent_User": {
+                                                            "inputs": {
+                                                                "body": {
+                                                                    "destinationDataset": "@items('Iteramos_las_misiones_activas')?['field_2']",
+                                                                    "destinationFolderPath": "@{items('Iteramos_las_misiones_activas')?['field_4']}/Non_existent_user",
+                                                                    "nameConflictBehavior": 2,
+                                                                    "sourceFileId": "@items('Iteramos_el_contenido_de_la_carpeta_')?['Id']"
+                                                                },
+                                                                "host": {
+                                                                    "connection": {
+                                                                        "name": "@parameters('$connections')['sharepointonline_1']['connectionId']"
+                                                                    }
+                                                                },
+                                                                "method": "post",
+                                                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(items('Iteramos_las_misiones_activas')?['field_2']))}/moveFileAsync"
+                                                            },
+                                                            "runAfter": {},
+                                                            "type": "ApiConnection"
+                                                        }
+                                                    }
+                                                },
+                                                "expression": {
+                                                    "and": [
+                                                        {
+                                                            "equals": [
+                                                                "@empty(body('Análisis_del_archivo_JSON_2')?['value'])",
+                                                                false
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                "runAfter": {
+                                                    "Análisis_del_archivo_JSON_2": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "If"
+                                            },
+                                            "HTTP_obtener_información_de_empleado": {
+                                                "inputs": {
+                                                    "authentication": {
+                                                        "audience": "https://graph.microsoft.com",
+                                                        "type": "ManagedServiceIdentity"
+                                                    },
+                                                    "method": "GET",
+                                                    "uri": "https://graph.microsoft.com/v1.0/users?$select=id,givenName,surname,supervisor,mail,employeeId,department,jobTitle,manager&$filter=startswith(employeeId,'@{variables('CodEmpleado')}')"
+                                                },
+                                                "runAfter": {
+                                                    "Inicializar_variable_fichero_B64": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "Http"
+                                            },
+                                            "Inicializar_variable_CodEmpleado": {
+                                                "inputs": {
+                                                    "name": "CodEmpleado",
+                                                    "value": "@{substring(trim(variables('vFileNameElements')[0]),4)}"
+                                                },
+                                                "runAfter": {
+                                                    "Inicializar_variable_usuarioDestino": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            },
+                                            "Inicializar_variable_fichero_B64": {
+                                                "inputs": {
+                                                    "name": "fichero_B64",
+                                                    "value": "@{body('Obtener_contenido_de_archivo')['$content']}"
+                                                },
+                                                "runAfter": {
+                                                    "Obtener_contenido_de_archivo": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            },
+                                            "Inicializar_variable_usuarioDestino": {
+                                                "inputs": {
+                                                    "name": "usuarioDestino",
+                                                    "value": "@{trim(variables('vFileNameElements')[2])}"
+                                                },
+                                                "runAfter": {
+                                                    "Inicializar_variable_vFileNameElements": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            },
+                                            "Inicializar_variable_vFileName": {
+                                                "inputs": {
+                                                    "name": "vFileName",
+                                                    "value": "@items('Iteramos_el_contenido_de_la_carpeta_')?['Name']"
+                                                },
+                                                "runAfter": {},
+                                                "type": "SetVariable"
+                                            },
+                                            "Inicializar_variable_vFileNameElements": {
+                                                "inputs": {
+                                                    "name": "vFileNameElements",
+                                                    "value": "@split(variables('vFileName'), '_')"
+                                                },
+                                                "runAfter": {
+                                                    "Inicializar_variable_vFileName": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            },
+                                            "Inicializar_variable_vMonthTS": {
+                                                "inputs": {
+                                                    "name": "vMonthTS",
+                                                    "value": "@{formatDateTime(concat(substring(trim(variables('vFileNameElements')[3]),4,2), '/01/2020'), 'MMMM')}"
+                                                },
+                                                "runAfter": {
+                                                    "Inicializar_variable_vYearTS": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            },
+                                            "Inicializar_variable_vYearTS": {
+                                                "inputs": {
+                                                    "name": "vYearTS",
+                                                    "value": "@{substring(trim(variables('vFileNameElements')[3]),0,4)}"
+                                                },
+                                                "runAfter": {
+                                                    "Inicializar_variable_CodEmpleado": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            },
+                                            "Obtener_contenido_de_archivo": {
+                                                "inputs": {
+                                                    "host": {
+                                                        "connection": {
+                                                            "name": "@parameters('$connections')['sharepointonline_1']['connectionId']"
+                                                        }
+                                                    },
+                                                    "method": "get",
+                                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(items('Iteramos_las_misiones_activas')?['field_2']))}/files/@{encodeURIComponent(items('Iteramos_el_contenido_de_la_carpeta_')?['Id'])}/content",
+                                                    "queries": {
+                                                        "inferContentType": true
+                                                    }
+                                                },
+                                                "runAfter": {
+                                                    "Inicializar_variable_vMonthTS": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "ApiConnection"
+                                            }
+                                        },
+                                        "expression": {
+                                            "and": [
+                                                {
+                                                    "equals": [
+                                                        "@items('Iteramos_el_contenido_de_la_carpeta_')?['IsFolder']",
+                                                        "@false"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "runAfter": {},
+                                        "type": "If"
+                                    }
+                                },
+                                "foreach": "@body('Listar_archivos_y_carpetas_')",
+                                "runAfter": {
+                                    "Listar_archivos_y_carpetas_": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                "type": "Foreach"
+                            },
+                            "Listar_archivos_y_carpetas_": {
+                                "inputs": {
+                                    "host": {
+                                        "connection": {
+                                            "name": "@parameters('$connections')['sharepointonline_1']['connectionId']"
+                                        }
+                                    },
+                                    "method": "get",
+                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(items('Iteramos_las_misiones_activas')?['field_2']))}/folders/@{encodeURIComponent(body('Obtener_los_metadatos_de_la_carpeta_mediante_la_ruta_de_acceso')?['Id'])}"
+                                },
+                                "runAfter": {
+                                    "Obtener_los_metadatos_de_la_carpeta_mediante_la_ruta_de_acceso": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                "type": "ApiConnection"
+                            },
+                            "Obtener_los_metadatos_de_la_carpeta_mediante_la_ruta_de_acceso": {
+                                "inputs": {
+                                    "host": {
+                                        "connection": {
+                                            "name": "@parameters('$connections')['sharepointonline_1']['connectionId']"
+                                        }
+                                    },
+                                    "method": "get",
+                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(items('Iteramos_las_misiones_activas')?['field_2']))}/GetFolderByPath",
+                                    "queries": {
+                                        "path": "@items('Iteramos_las_misiones_activas')?['field_4']",
+                                        "queryParametersSingleEncoded": true
+                                    }
+                                },
+                                "runAfter": {
+                                    "Inicializar_variable_bibiliotecaTimeSheet": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                "type": "ApiConnection"
+                            }
+                        },
+                        "foreach": "@body('Obtener_misiones_activas')?['value']",
+                        "runAfter": {
+                            "Obtener_misiones_activas": [
+                                "Succeeded"
+                            ]
+                        },
+                        "runtimeConfiguration": {
+                            "concurrency": {
+                                "repetitions": 1
+                            }
+                        },
+                        "type": "Foreach"
+                    },
+                    "Obtener_misiones_activas": {
+                        "inputs": {
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['sharepointonline_1']['connectionId']"
+                                }
+                            },
+                            "method": "get",
+                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent('https://nohungerforum.sharepoint.com/sites/DTR'))}/tables/@{encodeURIComponent(encodeURIComponent('5ba5c01a-40f4-442c-829b-93596d5502d7'))}/items",
+                            "queries": {
+                                "$filter": "(field_3 eq '1')"
+                            }
+                        },
+                        "runAfter": {
+                            "Inicializar_variable_token": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "ApiConnection"
+                    }
+                },
+                "expression": {
+                    "and": [
+                        {
+                            "equals": [
+                                "@outputs('HTTP_get_Ivcert_token')['statusCode']",
+                                200
+                            ]
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "HTTP_get_Ivcert_token": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "If"
+            },
+            "Declarar_variable_CodEmpleado": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "CodEmpleado",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_LineManager": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_LineManager": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "LineManager",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_idCircuito": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_bibliotecaTimeSheet": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "biblioteca TimeSheet",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_directorioTimeSheet": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_directorioTimeSheet": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "directorioTimeSheet",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_persona": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_fichero": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "fichero",
+                            "type": "object"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_usuarioDestino": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_fichero_B64": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "fichero_B64",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_fichero": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_idCircuito": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "idCircuito",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_token": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_persona": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "persona",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_vMonthTS": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_token": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "token",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_fichero_B64": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_usuarioDestino": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "usuarioDestino",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_vFileNameElements": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_vFileName": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "vFileName",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_bibliotecaTimeSheet": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_vFileNameElements": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "vFileNameElements",
+                            "type": "array"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_vFileName": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_vMonthTS": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "vMonthTS",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_vYearTS": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Declarar_variable_vYearTS": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "vYearTS",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "InitializeVariable"
+            },
+            "HTTP_get_Ivcert_token": {
+                "inputs": {
+                    "body": "grant_type=password&username=@{variables('usuario')}&password=@{variables('clave')}&appId=8e56f88c-2e48-11eb-adc1-0242ac120002&typeLogin=ivsign&orgaId=ach",
+                    "headers": {
+                        "Accept": "application/json",
+                        "Accept-Encoding": "gziContent-Typep, deflate, br",
+                        "Cache-Control": "no-cache",
+                        "Connection": "keep-alive",
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Host": "ach.ivcert.net"
+                    },
+                    "method": "POST",
+                    "uri": "https://ach.ivcert.net/ivcert/token"
+                },
+                "runAfter": {
+                    "Inicializar_clave_API": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Http"
+            },
+            "Inicializar_clave_API": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "clave",
+                            "type": "string",
+                            "value": "Wk2qar93LNzCv9hhDvBDX9GV5zhH6IGtb1M6dMPy1XA7ml9pDRGDXrjLIVmKejzh"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Inicializar_variable_usuario": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Inicializar_variable_usuario": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "usuario",
+                            "type": "string",
+                            "value": "AppPowerAutomate"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Declarar_variable_CodEmpleado": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "Periodicidad": {
+                "evaluatedRecurrence": {
+                    "frequency": "Day",
+                    "interval": 1,
+                    "schedule": {
+                        "hours": [
+                            "7",
+                            "11",
+                            "15",
+                            "17",
+                            "21"
+                        ]
+                    },
+                    "timeZone": "Romance Standard Time"
+                },
+                "recurrence": {
+                    "frequency": "Day",
+                    "interval": 1,
+                    "schedule": {
+                        "hours": [
+                            "7",
+                            "11",
+                            "15",
+                            "17",
+                            "21"
+                        ]
+                    },
+                    "timeZone": "Romance Standard Time"
+                },
+                "type": "Recurrence"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "office365users": {
+                    "connectionId": "/subscriptions/48752233-5451-4c38-a060-590011b06696/resourceGroups/ACH-TimeSheet/providers/Microsoft.Web/connections/office365users-2",
+                    "connectionName": "office365users-2",
+                    "id": "/subscriptions/48752233-5451-4c38-a060-590011b06696/providers/Microsoft.Web/locations/westeurope/managedApis/office365users"
+                },
+                "sharepointonline_1": {
+                    "connectionId": "/subscriptions/48752233-5451-4c38-a060-590011b06696/resourceGroups/ACH-TimeSheet/providers/Microsoft.Web/connections/sharepointonline-3",
+                    "connectionName": "sharepointonline-3",
+                    "id": "/subscriptions/48752233-5451-4c38-a060-590011b06696/providers/Microsoft.Web/locations/westeurope/managedApis/sharepointonline"
+                }
+            }
+        }
+    }
+}
