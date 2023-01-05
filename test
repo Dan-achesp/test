@@ -3,6 +3,7 @@ test pull
 
 {
     "definition": {
+test cambios locales
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "actions": {
             "Condición_-_si_se_recibe_el_token_(cód._respuesta_200)_": {
